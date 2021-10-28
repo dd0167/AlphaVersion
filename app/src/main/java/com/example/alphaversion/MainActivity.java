@@ -1,5 +1,7 @@
 package com.example.alphaversion;
 
+import static com.example.alphaversion.FBref.refUsers;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -11,6 +13,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.database.DatabaseReference;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
     EditText et_mail;
     EditText et_phone;
+    User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,21 +36,16 @@ public class MainActivity extends AppCompatActivity {
     public void insert(View view) {
         String email=et_mail.getText().toString();
         String phone=et_phone.getText().toString();
-        if (!email.isEmpty())
+        if (!email.isEmpty() || !phone.isEmpty())
         {
-            // insert to firebase
+            user=new User(email,phone);
+            refUsers.child(phone).setValue(user);
+            et_phone.setText("");
+            et_phone.setText("");
         }
         else
         {
-            Toast.makeText(this, "The Email is invalid", Toast.LENGTH_SHORT).show();
-        }
-        if (!phone.isEmpty())
-        {
-            // insert to firebase
-        }
-        else
-        {
-            Toast.makeText(this, "The Phone is invalid", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Enter all the required information!", Toast.LENGTH_SHORT).show();
         }
     }
 

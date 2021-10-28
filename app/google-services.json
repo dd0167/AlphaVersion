@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "842916980728",
+    "project_id": "alpha-version---rtdb",
+    "storage_bucket": "alpha-version---rtdb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842916980728:android:c049185869c3c06ccd180d",
+        "android_client_info": {
+          "package_name": "com.example.alphaversion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "842916980728-c2v6ulcp7liqr854nldgb80jhsrsja4v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgsN11NjLjWXoMVskzTLvEHB9EVFw3LXY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "842916980728-c2v6ulcp7liqr854nldgb80jhsrsja4v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
