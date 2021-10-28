@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -43,5 +44,8 @@ public class MapActivity extends AppCompatActivity {
             finish();
         }
         return true;
+    }
+
+    public void get_location(View view) {
     }
 }
