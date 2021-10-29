@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -30,7 +29,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     ImageView image_view;
     Uri imageUri;
-    ProgressBar progressBar;
+    ProgressBar progressBar_ga;
 
 
     @Override
@@ -39,9 +38,9 @@ public class GalleryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gallery);
 
         image_view=(ImageView) findViewById(R.id.image_view);
-        progressBar=(ProgressBar) findViewById(R.id.progressBar);
+        progressBar_ga=(ProgressBar) findViewById(R.id.progressBar_ga);
 
-        progressBar.setVisibility(View.INVISIBLE);
+        progressBar_ga.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class GalleryActivity extends AppCompatActivity {
                             Model model = new Model(uri.toString());
                             String modelId = root.push().getKey();
                             root.child(modelId).setValue(model);
-                            progressBar.setVisibility(View.INVISIBLE);
+                            progressBar_ga.setVisibility(View.INVISIBLE);
                             Toast.makeText(GalleryActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
 
                         }
@@ -114,12 +113,12 @@ public class GalleryActivity extends AppCompatActivity {
             }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
-                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar_ga.setVisibility(View.VISIBLE);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    progressBar.setVisibility(View.INVISIBLE);
+                    progressBar_ga.setVisibility(View.INVISIBLE);
                     Toast.makeText(GalleryActivity.this, "Uploading Failed!", Toast.LENGTH_SHORT).show();
                 }
             });

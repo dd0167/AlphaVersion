@@ -10,7 +10,7 @@
     <Space
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="30" />
+        android:layout_weight="10" />
 
     <EditText
         android:id="@+id/et_email"
@@ -27,18 +27,29 @@
         android:layout_weight="5" />
 
     <EditText
-        android:id="@+id/et_phone"
+        android:id="@+id/et_password"
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:hint="Enter Your Password"
         android:ems="10"
-        android:hint="Enter Your Phone"
-        android:inputType="phone"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:inputType="textPassword" />
 
     <Space
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="10" />
+        android:layout_weight="5" />
+
+    <ProgressBar
+        android:id="@+id/progressBar_ma"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="5" />
 
     <Button
         android:layout_width="match_parent"
