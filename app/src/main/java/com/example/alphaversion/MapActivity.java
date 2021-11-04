@@ -130,7 +130,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @SuppressLint("MissingPermission")
     public void onMapReady(GoogleMap googleMap) {
         gmap = googleMap;
-        gmap.setMinZoomPreference(12);
+        gmap.setMaxZoomPreference(21);
+        gmap.setMinZoomPreference(0);
 
         gmap.setIndoorEnabled(true);
         UiSettings uiSettings = gmap.getUiSettings();
@@ -139,9 +140,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         uiSettings.setCompassEnabled(true);
         uiSettings.setZoomControlsEnabled(true);
 
-        LatLng ny = new LatLng(40.7143528, -74.0059731);
-        gmap.moveCamera(CameraUpdateFactory.newLatLng(ny));
+        LatLng isr = new LatLng(31.38269, 35.071805);
+        gmap.moveCamera(CameraUpdateFactory.newLatLng(isr));
         progressBar.setVisibility(View.INVISIBLE);
+
+        float zoomLevel = 7.0f; //This goes up to 21
+        gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(isr, zoomLevel));
     }
 
     public void get_location(View view) {
