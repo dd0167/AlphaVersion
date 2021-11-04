@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         progressBar_ma.setVisibility(View.INVISIBLE);
                         // Sign in success, update UI with the signed-in user's information
-                        Toast.makeText(MainActivity.this, "User Registered Successfully!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "User Registered Successfully!", Toast.LENGTH_SHORT).show();
                     }
                     else
                     {

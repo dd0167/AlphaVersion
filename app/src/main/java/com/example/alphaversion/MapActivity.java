@@ -1,5 +1,7 @@
 package com.example.alphaversion;
 
+import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -14,7 +16,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,12 +34,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -55,6 +56,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     EditText et_GetAddress;
 
     FusedLocationProviderClient fusedLocationProviderClient;
+
+    CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
@@ -163,41 +166,61 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+
+        Task<Location> currentLocationTask = fusedLocationProviderClient.getCurrentLocation(
+                PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.getToken()
+        );
+
+        currentLocationTask.addOnCompleteListener((new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
-                Location location = task.getResult();
-                if (location!=null)
-                {
-                    try {
-                        gmap.clear();
-                        Geocoder geocoder=new Geocoder(MapActivity.this);
 
-                        List<Address> addresses=geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+                if (task.isSuccessful()) {
+                    // Task completed successfully
+                    Location location = task.getResult();
+                    if (location!=null)
+                    {
+                        try {
+                            gmap.clear();
+                            Geocoder geocoder=new Geocoder(MapActivity.this);
 
-                        LatLng cl = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
+                            List<Address> addresses=geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
 
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(cl);
-                        gmap.addMarker(markerOptions);
+                            LatLng cl = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
 
-                        float zoomLevel = 17.0f; //This goes up to 21
-                        gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(cl, zoomLevel));
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(cl);
+                            gmap.addMarker(markerOptions);
 
-                        tv_latitude.setText("Latitude: "+addresses.get(0).getLatitude());
-                        tv_longitude.setText("Longitude: "+addresses.get(0).getLongitude());
-                        tv_country.setText("Country Name: "+addresses.get(0).getCountryName());
-                        tv_city.setText("City Name: "+addresses.get(0).getLocality());
-                        tv_address.setText("Address: "+addresses.get(0).getAddressLine(0));
+                            float zoomLevel = 17.0f; //This goes up to 21
+                            gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(cl, zoomLevel));
 
-                        progressBar.setVisibility(View.INVISIBLE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                            tv_latitude.setText("Latitude: "+location.getLatitude());
+                            tv_longitude.setText("Longitude: "+location.getLongitude());
+                            tv_country.setText("Country Name: "+addresses.get(0).getCountryName());
+                            tv_city.setText("City Name: "+addresses.get(0).getLocality());
+                            tv_address.setText("Address: "+addresses.get(0).getAddressLine(0));
+
+                            progressBar.setVisibility(View.INVISIBLE);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            progressBar.setVisibility(View.INVISIBLE);
+                        }
+                    }
+                    else
+                    {
+                        Toast.makeText(MapActivity.this, "Error", Toast.LENGTH_SHORT).show();
                         progressBar.setVisibility(View.INVISIBLE);
                     }
+                } else {
+                    // Task failed with an exception
+                    Exception exception = task.getException();
+                    Toast.makeText(MapActivity.this, exception+"", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
             }
-        });
+        }));
     }
 
     @Override
