@@ -23,17 +23,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="10" />
 
-    <ProgressBar
-        android:id="@+id/progressBar_ga"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="10" />
-
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

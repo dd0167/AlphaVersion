@@ -6,31 +6,51 @@ import static com.example.alphaversion.FBref.root;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
 
     ImageView image_view;
     Uri imageUri;
-    ProgressBar progressBar_ga;
-
+    AlertDialog.Builder adb;
+    EditText et_GetFileName;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +58,6 @@ public class GalleryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gallery);
 
         image_view=(ImageView) findViewById(R.id.image_view);
-        progressBar_ga=(ProgressBar) findViewById(R.id.progressBar_ga);
-
-        progressBar_ga.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -94,34 +111,71 @@ public class GalleryActivity extends AppCompatActivity {
     public void upload_image(View view) {
         if (imageUri!=null)
         {
-            StorageReference fileRef=reference.child(System.currentTimeMillis()+"."+getFileExtension(imageUri));
-            fileRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            Model model = new Model(uri.toString());
-                            String modelId = root.push().getKey();
-                            root.child(modelId).setValue(model);
-                            progressBar_ga.setVisibility(View.INVISIBLE);
-                            Toast.makeText(GalleryActivity.this, "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+            adb = new AlertDialog.Builder(this);
+            adb.setCancelable(false);
+            adb.setTitle("Save As");
+            et_GetFileName=new EditText(this);
+            et_GetFileName.setHint("Type Text Here: Name");
+            et_GetFileName.setGravity(Gravity.CENTER);
+            adb.setView(et_GetFileName);
+            adb.setPositiveButton("Enter", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    String file_name=et_GetFileName.getText().toString();
+                    if (!file_name.equals(""))
+                    {
 
-                        }
-                    });
-                }
-            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
-                    progressBar_ga.setVisibility(View.VISIBLE);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    progressBar_ga.setVisibility(View.INVISIBLE);
-                    Toast.makeText(GalleryActivity.this, "Uploading Failed!", Toast.LENGTH_SHORT).show();
+                        progressDialog = new ProgressDialog(GalleryActivity.this);
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                        progressDialog.setTitle("Uploading file...");
+                        progressDialog.setProgress(0);
+                        progressDialog.show();
+                        progressDialog.setCancelable(false);
+
+//                        StorageReference fileRef=reference.child(System.currentTimeMillis()+"."+getFileExtension(imageUri));
+                        StorageReference fileRef=reference.child(file_name+".png");
+                        fileRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        Model model = new Model(uri.toString());
+//                                        String modelId = root.push().getKey();
+                                        root.child(file_name).setValue(model);
+                                        Toast.makeText(GalleryActivity.this, "Uploaded Successfully!", Toast.LENGTH_SHORT).show();
+                                        progressDialog.cancel();
+                                    }
+                                });
+                            }
+                        }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+                                int currentProgress = (int) (100*(snapshot.getBytesTransferred()/snapshot.getTotalByteCount()));
+                                progressDialog.setProgress(currentProgress);
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(GalleryActivity.this, "Uploading Failed!", Toast.LENGTH_SHORT).show();
+                                progressDialog.cancel();
+                            }
+                        });
+
+                    }
+                    else
+                    {
+                        Toast.makeText(GalleryActivity.this, "Insert Name!", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
+            adb.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog ad=adb.create();
+            ad.show();
         }
         else
         {
@@ -129,10 +183,10 @@ public class GalleryActivity extends AppCompatActivity {
         }
     }
 
-    public String getFileExtension(Uri mUri)
-    {
-        ContentResolver cr=getContentResolver();
-        MimeTypeMap mime=MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(cr.getType(mUri));
-    }
+//    public String getFileExtension(Uri mUri)
+//    {
+//        ContentResolver cr=getContentResolver();
+//        MimeTypeMap mime=MimeTypeMap.getSingleton();
+//        return mime.getExtensionFromMimeType(cr.getType(mUri));
+//    }
 }

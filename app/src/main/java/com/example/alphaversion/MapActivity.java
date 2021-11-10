@@ -15,7 +15,10 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
@@ -54,6 +58,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     ProgressBar progressBar;
     AlertDialog.Builder adb;
     EditText et_GetAddress;
+    double latitude;
+    double longitude;
 
     FusedLocationProviderClient fusedLocationProviderClient;
 
@@ -108,6 +114,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
         mapView.onStart();
+        turnGPSOn();
     }
 
     @Override
@@ -124,6 +131,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onDestroy() {
         mapView.onDestroy();
         super.onDestroy();
+        turnGPSOff();
     }
     @Override
     public void onLowMemory() {
@@ -133,6 +141,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @SuppressLint("MissingPermission")
     public void onMapReady(GoogleMap googleMap) {
+        turnGPSOn();
+
         gmap = googleMap;
         gmap.setMaxZoomPreference(21);
         gmap.setMinZoomPreference(0);
@@ -155,7 +165,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void get_location(View view) {
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             progressBar.setVisibility(View.VISIBLE);
+            turnGPSOn();
             getLocation();
+            turnGPSOff();
         } else {
             ActivityCompat.requestPermissions(MapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
@@ -172,55 +184,41 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 cancellationTokenSource.getToken()
         );
 
-        currentLocationTask.addOnCompleteListener((new OnCompleteListener<Location>() {
+        currentLocationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
-            public void onComplete(@NonNull Task<Location> task) {
+            public void onSuccess(Location location) {
+                try {
+                    gmap.clear();
+                    Geocoder geocoder=new Geocoder(MapActivity.this);
 
-                if (task.isSuccessful()) {
-                    // Task completed successfully
-                    Location location = task.getResult();
-                    if (location!=null)
-                    {
-                        try {
-                            gmap.clear();
-                            Geocoder geocoder=new Geocoder(MapActivity.this);
+                    latitude=location.getLatitude();
+                    longitude=location.getLongitude();
 
-                            List<Address> addresses=geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+                    List<Address> addresses=geocoder.getFromLocation(latitude,longitude,1);
 
-                            LatLng cl = new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
+                    LatLng cl = new LatLng(latitude, longitude);
 
-                            MarkerOptions markerOptions = new MarkerOptions();
-                            markerOptions.position(cl);
-                            gmap.addMarker(markerOptions);
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(cl);
+                    gmap.addMarker(markerOptions);
 
-                            float zoomLevel = 17.0f; //This goes up to 21
-                            gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(cl, zoomLevel));
+                    float zoomLevel = 17.0f; //This goes up to 21
+                    gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(cl, zoomLevel));
 
-                            tv_latitude.setText("Latitude: "+location.getLatitude());
-                            tv_longitude.setText("Longitude: "+location.getLongitude());
-                            tv_country.setText("Country Name: "+addresses.get(0).getCountryName());
-                            tv_city.setText("City Name: "+addresses.get(0).getLocality());
-                            tv_address.setText("Address: "+addresses.get(0).getAddressLine(0));
+                    tv_latitude.setText("Latitude: "+latitude);
+                    tv_longitude.setText("Longitude: "+longitude);
+                    tv_country.setText("Country Name: "+addresses.get(0).getCountryName());
+                    tv_city.setText("City Name: "+addresses.get(0).getLocality());
+                    tv_address.setText("Address: "+addresses.get(0).getAddressLine(0));
 
-                            progressBar.setVisibility(View.INVISIBLE);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            progressBar.setVisibility(View.INVISIBLE);
-                        }
-                    }
-                    else
-                    {
-                        Toast.makeText(MapActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                        progressBar.setVisibility(View.INVISIBLE);
-                    }
-                } else {
-                    // Task failed with an exception
-                    Exception exception = task.getException();
-                    Toast.makeText(MapActivity.this, exception+"", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.INVISIBLE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(MapActivity.this, "Error!", Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.INVISIBLE);
                 }
             }
-        }));
+        });
     }
 
     @Override
@@ -323,5 +321,37 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
         AlertDialog ad=adb.create();
         ad.show();
+    }
+
+    public void turnGPSOn(){
+        try
+        {
+
+            String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+
+
+            if(!provider.contains("gps")){ //if gps is disabled
+                final Intent poke = new Intent();
+                poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
+                poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
+                poke.setData(Uri.parse("3"));
+                sendBroadcast(poke);
+            }
+        }
+        catch (Exception e) {
+
+        }
+    }
+
+    public void turnGPSOff(){
+        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+
+        if(provider.contains("gps")){ //if gps is enabled
+            final Intent poke = new Intent();
+            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
+            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
+            poke.setData(Uri.parse("3"));
+            sendBroadcast(poke);
+        }
     }
 }
