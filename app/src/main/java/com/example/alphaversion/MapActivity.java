@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -71,6 +72,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //disable screen rotation
 
         mapView = (MapView) findViewById(R.id.mapView);
         tv_latitude=(TextView) findViewById(R.id.tv_latitude);
@@ -245,6 +248,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (st.equals("Gallery"))
         {
             Intent in=new Intent(this,GalleryActivity.class);
+            startActivity(in);
+            finish();
+        }
+        if (st.equals("Credits"))
+        {
+            Intent in=new Intent(this,CreditsActivity.class);
             startActivity(in);
             finish();
         }

@@ -4,4 +4,5 @@
     <item android:title="Auth" />
     <item android:title="Map" />
     <item android:title="Gallery" />
+    <item android:title="Credits" />
 </menu>

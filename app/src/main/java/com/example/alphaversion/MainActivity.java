@@ -95,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
             startActivity(in);
             finish();
         }
+        if (st.equals("Credits"))
+        {
+            Intent in=new Intent(this,CreditsActivity.class);
+            startActivity(in);
+            finish();
+        }
         return true;
     }
 }
