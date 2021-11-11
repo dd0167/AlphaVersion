@@ -73,7 +73,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //disable screen rotation
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //Disable Screen Rotation
 
         mapView = (MapView) findViewById(R.id.mapView);
         tv_latitude=(TextView) findViewById(R.id.tv_latitude);
